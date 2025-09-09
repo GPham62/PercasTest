@@ -16,13 +16,11 @@ public class MapMaker : MonoBehaviour
     [SerializeField] private GameObject gridHolder;
     [SerializeField] private int minDistance = 5;
     [SerializeField] private SearchType searchType = SearchType.Astar;
+    [SerializeField] private Camera cam;
 
     private Grid<TileGrid> _grid;
 
-    private void Awake()
-    {
-        _grid = new Grid<TileGrid>(mapWidth, mapHeight, cellSize, (grid, x, y) => new TileGrid(grid, x, y));
-    }
+    
 
     private void Update()
     {
@@ -32,13 +30,48 @@ public class MapMaker : MonoBehaviour
             {
                 Destroy(child.gameObject);
             }
+            _grid = new Grid<TileGrid>(mapWidth, mapHeight, cellSize, (grid, x, y) => new TileGrid(grid, x, y));
             (var agentPos, var goalPos) = PickAgentAndGoalPositions();
             DrawMap(agentPos, goalPos);
             var traversal = PathFindingFactory.GetPathFinding(searchType).FindPath(agentPos, goalPos, _grid);
-            foreach (var gridPos in traversal)
+            if (traversal.Count > 0)
             {
-                _grid.GetValue(gridPos).GetTile().ChangeColor(Color.yellow);
+                foreach (var gridPos in traversal)
+                {
+                    _grid.GetValue(gridPos).GetTile().ChangeColor(Color.yellow);
+                }
             }
+            
+            FirCameraToGrid();
+        }
+    }
+
+    private void FirCameraToGrid()
+    {
+        if (!cam)
+            cam = Camera.main;
+
+        // 2. Calculate orthographic size
+        float gridWorldWidth = mapWidth * cellSize;
+        float gridWorldHeight = mapHeight * cellSize;
+
+        float screenAspect = (float)Screen.width / (float)Screen.height;
+        float targetAspect = gridWorldWidth / gridWorldHeight;
+
+        if (screenAspect >= targetAspect)
+        {
+            // screen is wider than grid → fit by height
+            cam.orthographicSize = gridWorldHeight / 2f;
+            Vector3 center = new Vector3(mapWidth * cellSize / 2f, mapHeight * cellSize / 2f - 0.5f, -10f);
+            cam.transform.position = center;
+        }
+        else
+        {
+            // screen is taller than grid → fit by width
+            float differenceInSize = targetAspect / screenAspect;
+            cam.orthographicSize = (gridWorldHeight / 2f * differenceInSize);
+            Vector3 center = new Vector3(mapWidth * cellSize / 2f - 0.5f, mapHeight * cellSize / 2f, -10f);
+            cam.transform.position = center;
         }
     }
 
@@ -91,11 +124,5 @@ public class MapMaker : MonoBehaviour
         if (randomF < 0.8f)
             return tileEmpty;
         return tileWall;
-    }
-
-    public enum SearchType
-    {
-        Astar,
-        BFS,
     }
 }

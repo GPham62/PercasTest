@@ -17,5 +17,7 @@ namespace GridSystem
         {
             sprite.color = color;
         }
+
+        public virtual bool IsWalkable() => true;
     }
 }

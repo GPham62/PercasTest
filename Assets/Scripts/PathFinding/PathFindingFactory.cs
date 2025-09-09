@@ -4,11 +4,12 @@ using UnityEngine;
 
 public static class PathFindingFactory
 {
-    public static IPathStrategy GetPathFinding(MapMaker.SearchType searchType)
+    public static IPathStrategy GetPathFinding(SearchType searchType)
     {
         return searchType switch
         {
-            MapMaker.SearchType.BFS => new BFS()
+            SearchType.BFS => new BFS(),
+            SearchType.Astar => new AStar()
         };
     }
 }
