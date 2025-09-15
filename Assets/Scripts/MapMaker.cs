@@ -42,11 +42,11 @@ public class MapMaker : MonoBehaviour
                 }
             }
             
-            FirCameraToGrid();
+            FitCameraToGrid();
         }
     }
 
-    private void FirCameraToGrid()
+    private void FitCameraToGrid()
     {
         if (!cam)
             cam = Camera.main;

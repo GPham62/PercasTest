@@ -6,6 +6,9 @@ namespace PathFinding
 {
     public class AStar : IPathStrategy
     {
+        private const int VERTICAL_COST = 10;
+        private const int DIAGONAL_COST = 14;
+        
         public List<Vector2Int> FindPath(Vector2Int agentPos, Vector2Int goalPos, Grid<TileGrid> grid)
         {
             var openSet = new List<Vector2Int> { agentPos };
@@ -39,8 +42,8 @@ namespace PathFinding
 
                     var tile = grid.GetValue(next.x, next.y).GetTile();
                     if (!tile.IsWalkable()) continue;
-
-                    int score = gScore[current] + 1;
+                    bool isDiagonal = dir.x != 0 && dir.y != 0;
+                    int score = gScore[current] + (isDiagonal ? DIAGONAL_COST : VERTICAL_COST);
 
                     if (!gScore.ContainsKey(next) || score < gScore[next])
                     {
@@ -57,6 +60,10 @@ namespace PathFinding
         }
 
         private int Heuristic(Vector2Int a, Vector2Int b)
-            => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+        {
+            var dx = Mathf.Abs(a.x - b.x);
+            var dy = Mathf.Abs(a.y - b.y);
+            return VERTICAL_COST * (dx + dy) + (DIAGONAL_COST - 2 * VERTICAL_COST) * Mathf.Min(dx, dy);
+        }
     }
 }
